@@ -1,0 +1,45 @@
+<!--<p>Search Query:<input id=query oninput="updateSearch()"></p>-->
+<!--<p id=status></p>-->
+<!--<p><button id=previous onclick="showPrevious()" disabled>Show previous</button></p>-->
+<!--<p><button id=next onclick="showNext()" disabled>Show next</button></p>-->
+
+<input id="prefix" placeholder="prefix for ids">
+<p><button id="generate" onclick="generate()">generate translation config</button></p>
+<pre id="code">
+
+</pre>
+<script>
+"use strict";
+
+function postMessage(pluginMessage) {
+    parent.postMessage({ pluginMessage }, '*');
+}
+
+function generate() {
+    postMessage({ type: 'copy-translations' });
+}
+
+
+onmessage = event => {
+    let { results } = event.data.pluginMessage;
+    console.log(results);
+    const prefix = document.getElementById('prefix').value;
+
+    const renderResult = `import { defineMessages } from 'react-intl';
+
+    export default defineMessages({${results.filter(item => isNaN(item)).map(item => (
+        `
+        '': {
+            id: '${prefix}.',
+            defaultMessage: '${item}',
+        },`
+    )).join('')}
+    });
+`;
+
+    document.getElementById('generate').style.display = 'none';
+    document.getElementById('prefix').style.display = 'none';
+
+    document.getElementById('code').innerText = renderResult;
+}
+</script>
